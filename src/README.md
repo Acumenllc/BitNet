@@ -50,8 +50,13 @@ build/bin/llama-quantize --token-embedding-type Q6_K models/BitNet-b1.58-2B-4T/g
 
 ### 1. Weight & Activation Parallelism
 
-The key optimization introduces parallel processing paths for weight and activation computation:
+The kernel implements two parallelization strategies:
 
+- **Weight Parallel:** Reduces kernel launch overhead by processing multiple weight rows/columns in a single kernel call
+- **Activation Parallel:** Built on top of weight parallel, further reduces the unpack overhead when reading I2_S format weights by amortizing the unpacking cost across multiple activation elements
+- **Recommendation:** For I2_S quantization format, activation parallel is recommended and used in all subsequent benchmarks
+
+**Key Optimizations:**
 - **Vectorized Operations:** Utilizes SIMD instructions (AVX2 for x86, NEON for ARM) to process multiple elements simultaneously
 - **Parallel Accumulation:** Processes multiple weight-activation pairs in parallel, reducing sequential dependencies
 - **Reduced Memory Latency:** Optimized memory access patterns minimize cache misses
